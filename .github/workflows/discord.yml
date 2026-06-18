@@ -1,0 +1,19 @@
+name: Discord Notify
+
+on:
+  push:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send to Discord
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          REPO="${{ github.repository }}"
+          URL="${{ github.event.head_commit.url }}"
+
+          curl -H "Content-Type: application/json" \
+          -X POST ${{ secrets.DISCORD_WEBHOOK_URL }} \
+          -d "{\"content\":\"📦 Repo: $REPO\n📝 $COMMIT_MSG\n🔗 $URL\"}"
