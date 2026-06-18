@@ -8,15 +8,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Send Discord
+      - name: Send Discord Notification
         run: |
+          # GitHub情報取得
           COMMIT="${{ github.event.head_commit.message }}"
           REPO="${{ github.repository }}"
+          BRANCH="${{ github.ref_name }}"
 
+          # 空対策
           if [ -z "$COMMIT" ]; then
             COMMIT="No commit message"
           fi
 
-          curl -H "Content-Type: application/json" \
-          -X POST ${{ secrets.DISCORD_WEBHOOK_URL }} \
-          -d "{\"content\":\"📦 Repo: $REPO\n📝 $COMMIT\"}"
+          # メッセージ生成
+          MESSAGE="📦 Repo: $REPO\n🌿 Branch: $BRANCH\n📝 Commit: $COMMIT"
+
+          # JSON安全生成（重要）
+          PAYLOAD=$(jq -n --arg content "$MESSAGE" '{content:$content}')
+
+          # Discord送信
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            "${{ secrets.DISCORD_WEBHOOK_URL }}"
